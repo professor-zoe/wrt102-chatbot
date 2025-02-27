@@ -2,7 +2,7 @@ import streamlit as st
 import random
 
 # Welcome message
-st.title("📚 WRT 102 Study Chatbot")
+st.title("📚 WRT 102 Study Buddy")
 st.write("""
 This study tool was created in collaboration with **Professor Zoë** to help you engage with key vocabulary and concepts from class.
 
