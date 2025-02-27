@@ -179,28 +179,42 @@ if st.button("Give me a Word!"):
 # Quiz mode - Displaying all 15 questions at once
 st.write("\n---\n### 📝 Quiz Mode")
 
-# Select 15 random questions for the session
+# Initialize session state for quiz if not already set
 if "quiz_questions" not in st.session_state:
     st.session_state.quiz_questions = random.sample(vocab_list, 15)
     st.session_state.user_answers = {}
+    st.session_state.quiz_options = {}  # Store answer options to prevent reshuffling
+    st.session_state.quiz_types = {}  # Store question type for stability
+
+# Ensure `quiz_types` exists before accessing it
+if "quiz_types" not in st.session_state:
+    st.session_state.quiz_types = {}
 
 # Store user selections
 for i, (term, correct_definition, correct_example) in enumerate(st.session_state.quiz_questions):
-    question_type = random.choice(["definition", "example"])
-    
-    if question_type == "definition":
-        options = random.sample([d for _, d, _ in vocab_list if d != correct_definition], 2)
-        options.append(correct_definition)
-        random.shuffle(options)
-        st.subheader(f"🔹 Question {i+1}: What is the best definition of '{term}'?")
-    else:
-        options = random.sample([e for _, _, e in vocab_list if e != correct_example], 2)
-        options.append(correct_example)
-        random.shuffle(options)
-        st.subheader(f"✏️ Question {i+1}: Which of the following is the best example of '{term}' in use?")
 
-    # Store user's selection
-    st.session_state.user_answers[i] = st.radio(f"Select an answer for Question {i+1}:", options, key=f"q{i}")
+    # Ensure each question keeps the same type (definition or example) throughout
+    if i not in st.session_state.quiz_types:
+        st.session_state.quiz_types[i] = random.choice(["definition", "example"])
+
+    question_type = st.session_state.quiz_types[i]  # Retrieve stored type
+
+    # Store options in session state so they don't reshuffle
+    if i not in st.session_state.quiz_options:
+        if question_type == "definition":
+            options = random.sample([d for _, d, _ in vocab_list if d != correct_definition], 2)
+            options.append(correct_definition)
+            random.shuffle(options)
+        else:
+            options = random.sample([e for _, _, e in vocab_list if e != correct_example], 2)
+            options.append(correct_example)
+            random.shuffle(options)
+
+        st.session_state.quiz_options[i] = options  # Save options for this question
+
+    # Display question with stable options and question type
+    st.subheader(f"🔹 Question {i+1}: {'What is the best definition of' if question_type == 'definition' else 'Which is the best example of'} '{term}'?")
+    st.session_state.user_answers[i] = st.radio(f"Select an answer for Question {i+1}:", st.session_state.quiz_options[i], key=f"q{i}")
 
 # Button to submit answers and grade all at once
 if st.button("Submit Answers"):
@@ -208,7 +222,7 @@ if st.button("Submit Answers"):
 
     # Grade answers
     for i, (term, correct_definition, correct_example) in enumerate(st.session_state.quiz_questions):
-        question_type = "definition" if st.session_state.user_answers[i] == correct_definition else "example"
+        question_type = st.session_state.quiz_types[i]  # Use the stored question type
         correct_answer = correct_definition if question_type == "definition" else correct_example
 
         if st.session_state.user_answers[i] == correct_answer:
