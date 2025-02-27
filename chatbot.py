@@ -11,9 +11,6 @@ This study tool was created in collaboration with **Professor Zoë** to help you
 ### Choose your study mode:
 """)
 
-# User selects difficulty mode
-difficulty = st.radio("Select a mode:", ["Easy Mode (hints available)", "Challenge Mode (no hints)"])
-
 # Initialize session state for tracking stats
 if "session_stats" not in st.session_state:
     st.session_state.session_stats = {"correct": 0, "incorrect": 0, "attempts": 0}
